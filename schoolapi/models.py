@@ -1,6 +1,8 @@
+from tokenize import blank_re
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 import os
+from autoslug import AutoSlugField
 
 class TimeStamp(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -23,6 +25,7 @@ class Subject(TimeStamp):
 
 class Teacher(TimeStamp):
     full_name = models.CharField(max_length=100)
+    slug = AutoSlugField(populate_from='full_name',null=True,blank=True, always_update=True)
     subject = models.ForeignKey(Subject, on_delete=models.SET_NULL, null=True)
     address = models.CharField(max_length=200)
     email = models.EmailField(max_length=100)
@@ -53,12 +56,13 @@ def name_of_image(instance, filename):
     instance.title = blocks[0]
     instance.imgpath = os.path.join('manaslu/notice/', filename)
     return instance.imgpath
-    
+
 class Notice(TimeStamp):
     title = models.CharField(max_length=100)
     description = models.TextField()
     photo = models.ImageField(upload_to=name_of_image, blank=True, null=True)
     notice_date = models.DateField(blank=True, null=True)
+    published_date = models.DateField()
     
     class Meta:
         verbose_name = _('Notice')
@@ -67,10 +71,11 @@ class Notice(TimeStamp):
     def __str__(self) -> str:
         return self.title
     
-   
+
 class Event(TimeStamp):
     title = models.CharField(max_length=100)
     description = models.TextField()
+    photo = models.ImageField(upload_to= name_of_image, blank=True, null=True)
     organizer = models.CharField(max_length=100, null=True, blank=True)
     participants = models.CharField(max_length=100, null=True, blank=True)
     published_date = models.DateField()
